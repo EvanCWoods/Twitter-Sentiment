@@ -21,6 +21,17 @@ train_batches = train_data.shuffle(1000).padded_batch(10,
 test_batches = test_data.shuffle(1000).padded_batch(10,
                                             padded_shapes=padded_shapes)
 
+
+# Create a callback to stop trainng after 97% accuracy
+class MyCallback(tf.keras.callbacks.Callback):
+  def on_epoch_end(slef, epoch, logs={}):
+    if logs.get('accuracy') > 0.97:
+      print('97% accuracy reached, training stopped.')
+      self.model.stop_training = True
+      
+callback = MyCallback()
+
+
 # Create the model
 embedding_dim = 16
 model = tf.keras.Sequential([
@@ -32,7 +43,8 @@ model = tf.keras.Sequential([
 # Compile the model
 model.compile(loss='binary_crossentropy',
             optimizer='Adam',
-            metrics=['accuracy'])
+            metrics=['accuracy'],
+            callbacks=[callback])
 
 # Fit the model
 history = model.fit(train_batches, epochs=10, validation_data=(test_batches),
